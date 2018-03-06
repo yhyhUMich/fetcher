@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxt.async as accxt
+import book
 
 import asyncio
 import time
@@ -9,6 +10,7 @@ import threading
 import json
 import logging
 import argparse
+import threading
 from pprint import pprint
 
 logger = logging.getLogger('fetcher')
@@ -16,6 +18,7 @@ logger = logging.getLogger('fetcher')
 CONF_PATH = './config.json'
 CONF = {}
 EXS_HANDLERS = {}
+BOOKS = {}
 LOOP = asyncio.get_event_loop()
 
 
@@ -47,7 +50,7 @@ def load_config():
 def setup_exchanges():
     logger.info("setuping exchanges through ccxt")
 
-    global CONF, EXS_HANDLERS
+    global CONF, EXS_HANDLERS, BOOKS
     exchanges = CONF.get('exchanges', None)
     if exchanges is None or not len(exchanges):
         logging.error('no exchanges from config.json')
@@ -61,21 +64,37 @@ def setup_exchanges():
             logger('incorrect exchanges name for ccxt')
 
         EXS_HANDLERS[exs] = exs_handler
+        BOOKS[exs] = books.Book(exs)
 
-
-def load_markets():
+async def load_markets():
     logger.info("loading markets")
-    global EXS_HANDLERS, LOOP
+    global EXS_HANDLERS
     tasks = [v.load_markets() for k, v in EXS_HANDLERS.items()]
-    LOOP.run_until_complete(asyncio.wait(tasks))
+    await asyncio.wait(tasks)
 
 
 async def cleanup():
     logger.info("clean up resources, ready to close")
     global EXS_HANDLERS
-    for k, v in EXS_HANDLERS.items():
-        await v.close()
-        logger.info('close %s', k)
+    tasks = [v.close() for k, v in EXS_HANDLERS.items()]
+    await asyncio.wait(tasks)
+
+
+async def fetch_orderbook(exchange):
+    global CONF
+    if exchange.has['fetchOrderBook']:
+        limit = 1
+        orderbooks = await asyncio.gather(*[exchange.fetch_order_book(mkt, limit)
+                                            for mkt in CONF['markets']])
+        for index, ob in enumerate(orderbooks):
+            bk = book.Book(ob, CONF['markets'][index])
+            print(bk)           
+
+
+async def fetch_all_orderbooks():
+    logger.info('fetching order books')
+    global EXS_HANDLERS
+    return await asyncio.gather(*[fetch_orderbook(v) for k, v in EXS_HANDLERS.items()])
 
 
 if __name__ == '__main__':
@@ -86,7 +105,14 @@ if __name__ == '__main__':
 
     set_env()
     setup_exchanges()
-    load_markets()
 
-    LOOP.run_until_complete(asyncio.wait([cleanup()]))
+    LOOP.run_until_complete(load_markets())
+    rtn = LOOP.run_until_complete(fetch_all_orderbooks())
+    pprint(rtn)
+
+    #while True:
+    #    LOOP.run_until_complete(fetch_all_order_book())
+    #    LOOP.run_until_complete(record())
+
+    LOOP.run_until_complete(cleanup())
     LOOP.close()
