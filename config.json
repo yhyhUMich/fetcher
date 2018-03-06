@@ -1,0 +1,11 @@
+{
+    "exchanges": [
+        "gdax",
+        "okcoinusd",
+        "poloniex",
+        "bitfinex2"
+    ],
+    "markets":[
+        "BTC/USD"
+    ]
+}
