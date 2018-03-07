@@ -2,10 +2,11 @@
     "exchanges": [
         "gdax",
         "okcoinusd",
-        "bitfinex2"
+        "bitfinex"
     ],
     "markets":[
         "BTC/USD",
         "ETH/USD"
-    ]
+    ],
+    "interval": 5
 }

@@ -3,6 +3,7 @@
 
 import ccxt.async as accxt
 from data import Exchange, Market, Book
+from util import throttle, get_state, update_state, State, STATE
 
 import asyncio
 import time
@@ -12,6 +13,7 @@ import logging
 import argparse
 import threading
 from pprint import pprint
+from timeit import default_timer as timer
 
 logger = logging.getLogger('fetcher')
 
@@ -123,13 +125,26 @@ if __name__ == '__main__':
 
     set_env()
     setup_exchanges()
-
     LOOP.run_until_complete(load_markets())
-
-    from timeit import default_timer as timer
 
     start = timer()
     LOOP.run_until_complete(fetch_all_orderbooks())
     print(timer() - start)
-    LOOP.run_until_complete(cleanup())
-    LOOP.close()
+
+    try:
+        while True:
+            new_state = get_state()
+
+            if new_state == State.STOPPED:
+                time.sleep(1)
+            elif new_state == State.RUNNING:
+                tasks = [asyncio.ensure_future(fetch_all_orderbooks())]
+                LOOP.run_until_complete(throttle(tasks, CONF['interval']))
+
+            old_state = new_state
+    except KeyboardInterrupt:
+        logger.info('Got SIGINT, aborting ...')
+    finally:
+        LOOP.run_until_complete(cleanup())
+        LOOP.close()
+        logger.info('successfully closed')
