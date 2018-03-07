@@ -1,9 +1,17 @@
 import pymongo
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import os
 from multiprocessing import Queue
 
 logger = logging.getLogger('db')
+log_path = "./db.log"
+fh = TimedRotatingFileHandler(log_path, 'H', 6, 5)
+fh.setLevel(logging.INFO)
+fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+formatter = logging.Formatter(fmt)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 
 class DBMange(object):

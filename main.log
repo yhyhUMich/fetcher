@@ -1,0 +1,80 @@
+2018-03-07 06:16:20,318 - fetcher - INFO - loading config
+2018-03-07 06:16:20,318 - fetcher - INFO - Starting fetcher, PID: 10773 
+2018-03-07 06:16:20,319 - fetcher - INFO - start db process
+2018-03-07 06:16:20,321 - fetcher - INFO - setuping exchanges through ccxt
+2018-03-07 06:16:20,322 - fetcher - INFO - setup gdax
+2018-03-07 06:16:20,339 - fetcher - INFO - setup okcoinusd
+2018-03-07 06:16:20,355 - fetcher - INFO - setup binance
+2018-03-07 06:16:20,370 - fetcher - INFO - setup kraken
+2018-03-07 06:16:20,389 - fetcher - INFO - setup okex
+2018-03-07 06:16:20,409 - fetcher - INFO - setup poloniex
+2018-03-07 06:16:20,425 - fetcher - INFO - setup hitbtc2
+2018-03-07 06:16:20,459 - fetcher - INFO - loading markets
+2018-03-07 06:16:22,896 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:22,896 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:22,896 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:22,897 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:22,897 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:22,897 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:22,898 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:22,898 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:33,715 - fetcher - WARNING - Error : okex GET https://www.okex.com/api/v1/depth.do?symbol=ltc_usdt  
+2018-03-07 06:16:33,715 - fetcher - INFO - canceling all tasks
+2018-03-07 06:16:33,716 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:33,716 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:33,716 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:33,716 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:33,717 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:33,717 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:33,717 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:33,717 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:34,857 - fetcher - INFO - Throttling tasks for 3.86 seconds
+2018-03-07 06:16:38,718 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:38,718 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:38,718 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:38,719 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:38,719 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:38,719 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:38,719 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:38,719 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:39,828 - fetcher - INFO - Throttling tasks for 3.89 seconds
+2018-03-07 06:16:43,725 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:43,726 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:43,726 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:43,726 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:43,726 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:43,726 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:43,726 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:43,727 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:44,851 - fetcher - INFO - Throttling tasks for 3.87 seconds
+2018-03-07 06:16:48,727 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:48,727 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:48,728 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:48,728 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:48,728 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:48,728 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:48,728 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:48,729 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:49,755 - fetcher - INFO - Throttling tasks for 3.97 seconds
+2018-03-07 06:16:53,729 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:53,729 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:53,730 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:53,730 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:53,730 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:53,730 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:53,731 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:53,731 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:54,773 - fetcher - INFO - Throttling tasks for 3.96 seconds
+2018-03-07 06:16:58,735 - fetcher - INFO - fetching all order books
+2018-03-07 06:16:58,735 - fetcher - INFO - fetching order book from kraken
+2018-03-07 06:16:58,736 - fetcher - INFO - fetching order book from poloniex
+2018-03-07 06:16:58,736 - fetcher - INFO - fetching order book from okcoinusd
+2018-03-07 06:16:58,736 - fetcher - INFO - fetching order book from okex
+2018-03-07 06:16:58,736 - fetcher - INFO - fetching order book from gdax
+2018-03-07 06:16:58,736 - fetcher - INFO - fetching order book from hitbtc2
+2018-03-07 06:16:58,736 - fetcher - INFO - fetching order book from binance
+2018-03-07 06:16:59,787 - fetcher - INFO - Throttling tasks for 3.95 seconds
+2018-03-07 06:17:02,707 - fetcher - INFO - Got SIGINT, aborting ...
+2018-03-07 06:17:02,707 - fetcher - INFO - canceling all tasks
+2018-03-07 06:17:02,708 - fetcher - INFO - clean up resources, ready to close
+2018-03-07 06:17:02,711 - fetcher - INFO - successfully closed

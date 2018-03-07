@@ -12,6 +12,7 @@ import time
 import threading
 import json
 import logging
+from logging.handlers import TimedRotatingFileHandler
 import argparse
 import os
 import signal
@@ -48,6 +49,15 @@ def set_env():
         level=logging.DEBUG if args.verbose else logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+
+    log_path = "./main.log"
+    fh = TimedRotatingFileHandler(log_path, 'H', 6, 5)
+    fh.setLevel(logging.INFO)
+    fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    formatter = logging.Formatter(fmt)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
     load_config()
 
     for sig in (signal.SIGTERM, ):
