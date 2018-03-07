@@ -1,4 +1,5 @@
 *.pyc
 log.*
+*log*
 __pycache__
 .vscode/
