@@ -5,6 +5,7 @@
         "bitfinex2"
     ],
     "markets":[
-        "BTC/USD"
+        "BTC/USD",
+        "ETH/USD"
     ]
 }

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxt.async as accxt
-import book
+from data import Exchange, Market, Book
 
 import asyncio
 import time
@@ -17,8 +17,8 @@ logger = logging.getLogger('fetcher')
 
 CONF_PATH = './config.json'
 CONF = {}
-EXS_HANDLERS = {}
-BOOKS = {}
+EXS = {}
+MKTS = {}
 LOOP = asyncio.get_event_loop()
 
 
@@ -50,7 +50,7 @@ def load_config():
 def setup_exchanges():
     logger.info("setuping exchanges through ccxt")
 
-    global CONF, EXS_HANDLERS, BOOKS
+    global CONF, EXS
     exchanges = CONF.get('exchanges', None)
     if exchanges is None or not len(exchanges):
         logging.error('no exchanges from config.json')
@@ -63,38 +63,56 @@ def setup_exchanges():
         except AttributeError:
             logger('incorrect exchanges name for ccxt')
 
-        EXS_HANDLERS[exs] = exs_handler
-        BOOKS[exs] = books.Book(exs)
+        EXS[exs] = Exchange(exs, exs_handler)
+
 
 async def load_markets():
     logger.info("loading markets")
-    global EXS_HANDLERS
-    tasks = [v.load_markets() for k, v in EXS_HANDLERS.items()]
+    global EXS, MKTS
+    tasks = [ex.handler.load_markets() for ex in EXS.values()]
     await asyncio.wait(tasks)
+
+    for mkt in CONF['markets']:
+        MKTS[mkt] = Market(mkt)
+
+    for ex in EXS.values():
+        all_markets = ex.handler.symbols
+        for mkt in CONF['markets']:
+            if mkt not in all_markets:
+                logger.error("%s not supported by %s" % (mkt, ex.name))
+                exit(1)
+
+            book = Book(ex.name, mkt)
+            MKTS[mkt].add_exchange(ex.name, book)
+            ex.add_market(mkt, book)
 
 
 async def cleanup():
     logger.info("clean up resources, ready to close")
-    global EXS_HANDLERS
-    tasks = [v.close() for k, v in EXS_HANDLERS.items()]
+    global EXS
+    tasks = [ex.handler.close() for ex in EXS.values()]
     await asyncio.wait(tasks)
 
 
 async def fetch_orderbook(exchange):
-    global CONF
-    if exchange.has['fetchOrderBook']:
-        limit = 1
-        orderbooks = await asyncio.gather(*[exchange.fetch_order_book(mkt, limit)
-                                            for mkt in CONF['markets']])
-        for index, ob in enumerate(orderbooks):
-            bk = book.Book(ob, CONF['markets'][index])
-            print(bk)           
+    logger.info('fetching order book from %s' % exchange.name)
+
+    if exchange.handler.has['fetchOrderBook']:
+        markets = exchange.market2book.keys()
+        task2mkt = {asyncio.ensure_future(exchange.handler.fetch_order_book(mkt)): mkt
+                    for mkt in markets}
+
+        await asyncio.gather(*task2mkt.keys())
+
+        for task, mkt in task2mkt.items():
+            exchange.market2book[mkt].update(task.result())
+            logger.info('received %s' % exchange.market2book[mkt])
 
 
 async def fetch_all_orderbooks():
-    logger.info('fetching order books')
-    global EXS_HANDLERS
-    return await asyncio.gather(*[fetch_orderbook(v) for k, v in EXS_HANDLERS.items()])
+    logger.info('fetching all order books')
+    global EXS
+    return await asyncio.gather(*[fetch_orderbook(ex) for name, ex in EXS.items()])
 
 
 if __name__ == '__main__':
@@ -107,12 +125,11 @@ if __name__ == '__main__':
     setup_exchanges()
 
     LOOP.run_until_complete(load_markets())
-    rtn = LOOP.run_until_complete(fetch_all_orderbooks())
-    pprint(rtn)
 
-    #while True:
-    #    LOOP.run_until_complete(fetch_all_order_book())
-    #    LOOP.run_until_complete(record())
+    from timeit import default_timer as timer
 
+    start = timer()
+    LOOP.run_until_complete(fetch_all_orderbooks())
+    print(timer() - start)
     LOOP.run_until_complete(cleanup())
     LOOP.close()
