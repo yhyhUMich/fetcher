@@ -3,7 +3,8 @@
 
 import ccxt.async as accxt
 from data import Exchange, Market, Book
-from util import throttle, get_state, update_state, State, STATE
+from database import db_proc_start
+from util import markets2bson, throttle, get_state, update_state, State, STATE
 
 import asyncio
 import time
@@ -14,6 +15,7 @@ import argparse
 import threading
 from pprint import pprint
 from timeit import default_timer as timer
+from multiprocessing import Process, Queue
 
 logger = logging.getLogger('fetcher')
 
@@ -22,9 +24,13 @@ CONF = {}
 EXS = {}
 MKTS = {}
 LOOP = asyncio.get_event_loop()
+QUE = Queue()
+DBP = None
 
 
 def set_env():
+    logger.info("seting environment")
+
     arg_parse = argparse.ArgumentParser(description='fetcher args')
     arg_parse.add_argument('-v', action='store_true', dest='verbose', default=False,
                            help='LOG LEVEL DOWN TO DEBUG')
@@ -34,7 +40,6 @@ def set_env():
         level=logging.DEBUG if args.verbose else logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-
     load_config()
 
 
@@ -47,6 +52,14 @@ def load_config():
     if 'exchanges' not in CONF or 'markets' not in CONF:
         logger.error('incorrect config file')
         exit(1)
+
+
+def setup_db():
+    logger.info('start db process')
+
+    global CONF, DBP
+    DBP = Process(target=db_proc_start, args=(QUE, CONF))
+    DBP.start()
 
 
 def setup_exchanges():
@@ -114,7 +127,7 @@ async def fetch_orderbook(exchange):
 async def fetch_all_orderbooks():
     logger.info('fetching all order books')
     global EXS
-    return await asyncio.gather(*[fetch_orderbook(ex) for name, ex in EXS.items()])
+    await asyncio.gather(*[fetch_orderbook(ex) for name, ex in EXS.items()])
 
 
 if __name__ == '__main__':
@@ -124,7 +137,9 @@ if __name__ == '__main__':
     )
 
     set_env()
+    setup_db()
     setup_exchanges()
+
     LOOP.run_until_complete(load_markets())
 
     start = timer()
@@ -132,6 +147,8 @@ if __name__ == '__main__':
     print(timer() - start)
 
     try:
+        call = markets2bson(MKTS, QUE)
+
         while True:
             new_state = get_state()
 
@@ -139,7 +156,7 @@ if __name__ == '__main__':
                 time.sleep(1)
             elif new_state == State.RUNNING:
                 tasks = [asyncio.ensure_future(fetch_all_orderbooks())]
-                LOOP.run_until_complete(throttle(tasks, CONF['interval']))
+                LOOP.run_until_complete(throttle(tasks, [call], CONF['interval']))
 
             old_state = new_state
     except KeyboardInterrupt:
@@ -147,4 +164,5 @@ if __name__ == '__main__':
     finally:
         LOOP.run_until_complete(cleanup())
         LOOP.close()
+        DBP.terminate()
         logger.info('successfully closed')

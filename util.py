@@ -3,6 +3,10 @@ import asyncio
 import logging
 from wrapt import synchronized
 from timeit import default_timer as timer
+import datetime
+
+from data import Market
+from database import DBMange
 
 logger = logging.getLogger('fetcher')
 
@@ -25,13 +29,31 @@ def get_state():
     return STATE
 
 
-async def throttle(tasks, interval):
+def markets2bson(mkts, que):
+    mkts = mkts
+    que = que
+
+    def inner():
+        markets = {}
+        for name, mkt in mkts.items():
+            markets[name] = mkt.trans_bson()
+        db_item = {
+            'markets': markets,
+            'datatime': 'test'
+        }
+
+        que.put(db_item)
+
+    return inner
+
+
+async def throttle(tasks, calls, interval):
     start = timer()
-    result = await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
+
+    [call() for call in calls]
+
     end = timer()
     duration = max(interval - (end - start), 0.0)
-
     logger.info('Throttling tasks for %.2f seconds', duration)
     await asyncio.sleep(duration)
-
-    return result

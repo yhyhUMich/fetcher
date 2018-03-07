@@ -1,12 +1,15 @@
 {
     "exchanges": [
         "gdax",
-        "okcoinusd",
-        "bitfinex"
+        "okcoinusd"
     ],
     "markets":[
         "BTC/USD",
         "ETH/USD"
     ],
-    "interval": 5
+    "interval": 5,
+    "db_address": "127.0.0.1",
+    "db_port": "27017",
+    "db_name": "test",
+    "coll_name": "markets"
 }

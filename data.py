@@ -8,6 +8,16 @@ class Market(object):
         if exchange not in self.exs2book:
             self.exs2book[exchange] = book
 
+    def trans_bson(self):
+        if len(self.exs2book) == 0:
+            logger.error('transfer empty market')
+            exit(1)
+
+        db_item = {}
+        for ex_name, book in self.exs2book.items():
+            db_item[ex_name] = book.trans_bson()
+        return db_item
+
 
 class Exchange(object):
     def __init__(self, name, handler):
@@ -44,3 +54,11 @@ class Book(object):
         self.ask1price = orderbook['asks'][0][0]
         self.ask1vol = orderbook['asks'][0][1]
         self.datetime = orderbook['datetime']
+
+    def trans_bson(self):
+        return {
+            'bid1p': self.bid1price,
+            'bid1v': self.bid1vol,
+            'ask1p': self.ask1price,
+            'ask1v': self.ask1vol
+        }
