@@ -1,12 +1,49 @@
 {
-    "exchanges": [
-        "gdax",
-        "okcoinusd"
-    ],
-    "markets":[
-        "BTC/USD",
-        "ETH/USD"
-    ],
+    "exchanges": {
+        "gdax": [
+            "BTC/USD",
+            "ETH/USD",
+            "LTC/USD",
+            "BCH/USD"
+        ],
+        "okcoinusd": [
+            "BTC/USD",
+            "ETH/USD",
+            "LTC/USD",
+            "BCH/USD"
+        ],
+        "binance": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "LTC/USDT",
+            "BCH/USDT" 
+        ],
+        "kraken": [
+            "BTC/USD",
+            "ETH/USD",
+            "LTC/USD",
+            "BCH/USD"
+        ],
+        "okex": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "LTC/USDT",
+            "BCH/USDT" 
+        ],
+        "poloniex": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "LTC/USDT",
+            "BCH/USDT" 
+        ],
+        "hitbtc2": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "LTC/USDT",
+            "BCH/USDT" 
+        ]
+    },
+
     "interval": 5,
     "db_address": "127.0.0.1",
     "db_port": "27017",

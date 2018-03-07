@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxt.async as accxt
+import ccxt
 from data import Exchange, Market, Book
 from database import db_proc_start
 from util import markets2bson, throttle, get_state, update_state, State, STATE
@@ -12,7 +13,8 @@ import threading
 import json
 import logging
 import argparse
-import threading
+import os
+import signal
 from pprint import pprint
 from timeit import default_timer as timer
 from multiprocessing import Process, Queue
@@ -26,6 +28,12 @@ MKTS = {}
 LOOP = asyncio.get_event_loop()
 QUE = Queue()
 DBP = None
+
+
+def ask_exit():
+    logger.info("canceling all tasks")
+    for task in asyncio.Task.all_tasks():
+        task.cancel()
 
 
 def set_env():
@@ -42,6 +50,9 @@ def set_env():
     )
     load_config()
 
+    for sig in (signal.SIGTERM, ):
+        LOOP.add_signal_handler(sig, ask_exit)
+
 
 def load_config():
     logger.info("loading config")
@@ -49,7 +60,7 @@ def load_config():
     global CONF_PATH, CONF
     with open(CONF_PATH) as file:
         CONF = json.load(file)
-    if 'exchanges' not in CONF or 'markets' not in CONF:
+    if 'exchanges' not in CONF:
         logger.error('incorrect config file')
         exit(1)
 
@@ -71,7 +82,7 @@ def setup_exchanges():
         logging.error('no exchanges from config.json')
         exit(1)
 
-    for exs in exchanges:
+    for exs in exchanges.keys():
         try:
             logger.info('setup %s', exs)
             exs_handler = getattr(accxt, exs)()
@@ -83,23 +94,26 @@ def setup_exchanges():
 
 async def load_markets():
     logger.info("loading markets")
+
     global EXS, MKTS
     tasks = [ex.handler.load_markets() for ex in EXS.values()]
     await asyncio.wait(tasks)
 
-    for mkt in CONF['markets']:
-        MKTS[mkt] = Market(mkt)
+    for mkts in CONF['exchanges'].values():
+        for mkt in mkts:
+            if mkt not in MKTS:
+                MKTS[mkt] = Market(mkt)
 
-    for ex in EXS.values():
-        all_markets = ex.handler.symbols
-        for mkt in CONF['markets']:
+    for ex, mkts in CONF['exchanges'].items():
+        all_markets = EXS[ex].handler.symbols
+        for mkt in mkts:
             if mkt not in all_markets:
-                logger.error("%s not supported by %s" % (mkt, ex.name))
+                logger.error("%s not supported by %s" % (mkt, ex))
                 exit(1)
 
-            book = Book(ex.name, mkt)
-            MKTS[mkt].add_exchange(ex.name, book)
-            ex.add_market(mkt, book)
+            book = Book(ex, mkt)
+            MKTS[mkt].add_exchange(ex, book)
+            EXS[ex].add_market(mkt, book)
 
 
 async def cleanup():
@@ -121,7 +135,7 @@ async def fetch_orderbook(exchange):
 
         for task, mkt in task2mkt.items():
             exchange.market2book[mkt].update(task.result())
-            logger.info('received %s' % exchange.market2book[mkt])
+            # logger.info('received %s' % exchange.market2book[mkt])
 
 
 async def fetch_all_orderbooks():
@@ -132,36 +146,31 @@ async def fetch_all_orderbooks():
 
 if __name__ == '__main__':
 
+    set_env()
+
     logger.info(
-        'Starting fetcher'
+        'Starting fetcher, PID: %s ' % os.getpid()
     )
 
-    set_env()
     setup_db()
     setup_exchanges()
 
     LOOP.run_until_complete(load_markets())
 
-    start = timer()
-    LOOP.run_until_complete(fetch_all_orderbooks())
-    print(timer() - start)
-
     try:
         call = markets2bson(MKTS, QUE)
 
         while True:
-            new_state = get_state()
-
-            if new_state == State.STOPPED:
-                time.sleep(1)
-            elif new_state == State.RUNNING:
-                tasks = [asyncio.ensure_future(fetch_all_orderbooks())]
+            tasks = [asyncio.ensure_future(fetch_all_orderbooks())]
+            try:
                 LOOP.run_until_complete(throttle(tasks, [call], CONF['interval']))
-
-            old_state = new_state
+            except Exception as e:
+                logger.warn("Error : %s " % e)
+                ask_exit()
     except KeyboardInterrupt:
         logger.info('Got SIGINT, aborting ...')
     finally:
+        ask_exit()
         LOOP.run_until_complete(cleanup())
         LOOP.close()
         DBP.terminate()
