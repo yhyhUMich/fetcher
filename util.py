@@ -35,11 +35,14 @@ def markets2bson(mkts, que):
 
     def inner():
         markets = {}
+        datetime = None
         for name, mkt in mkts.items():
             markets[name] = mkt.trans_bson()
+            if datetime is None:
+                datetime = list(mkt.exs2book.values())[0].datetime
         db_item = {
             'markets': markets,
-            'datatime': 'test'
+            'datetime': datetime
         }
 
         que.put(db_item)

@@ -54,6 +54,7 @@ class Book(object):
         self.ask1price = orderbook['asks'][0][0]
         self.ask1vol = orderbook['asks'][0][1]
         self.datetime = orderbook['datetime']
+        print(self.datetime)
 
     def trans_bson(self):
         return {

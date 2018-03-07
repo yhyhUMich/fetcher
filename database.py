@@ -23,7 +23,7 @@ class DBMange(object):
 
 
 def db_proc_start(que, config):
-    logger.info('DB Process: %s' % os.getpid())    
+    logger.info('DB Process: %s' % os.getpid())
     logger.info('setting db connection')
 
     dbm = DBMange(
